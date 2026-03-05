@@ -3,6 +3,7 @@ package com.modapl.poc.service
 import com.modapl.poc.domain.EvVehicle
 import com.modapl.poc.domain.Vehicle
 import com.modapl.poc.domain.VehicleType
+import com.modapl.poc.infrastructure.VehicleDataBuffer
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode
 import org.junit.jupiter.api.BeforeEach
