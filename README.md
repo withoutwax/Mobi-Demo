@@ -10,7 +10,7 @@
 
 - **Multi-Type Mobility Simulation:** `@Scheduled` 백그라운드 워커(`VehicleDataProducer`)가 1초 단위로 REGULAR·FREIGHT·MICRO 3가지 타입을 섞어 최소 5대의 가상 주행 데이터를 생성 후 인메모리 버퍼(`VehicleDataBuffer`)에 적재. 버퍼 초과 시에도 스레드가 죽지 않는 Fault-tolerance 설계.
 - **SDV Data Modeling:** Kotlin `sealed interface`로 `Vehicle` 도메인을 설계하여 `EvVehicle`(배터리)/`IceVehicle`(연료)의 파워트레인 다형성을 타입 안전하게 구현. `init { require(...) }`로 잘못된 도메인 조합(MICRO+ICE)을 생성 시점에 즉시 차단.
-- **Real-time Streaming (SSE):** `SseEmitterService`를 통해 HTTP 기반의 실시간 단방향 브로드캐스팅 구현. 다중 클라이언트 관리에 `CopyOnWriteArrayList`를 채택하여 Thread-safe를 보장하며, 통신 장애(IOException) 시 죽은 커넥션을 자동으로 정리(Self-healing)하여 서버 리소스를 보호.
+- **Real-time Streaming (SSE):** `SseEmitterService`와 1초 단위 스마트 컨슈머(`VehicleDataBroadcaster`) 결합. 접속 중인 클라이언트가 0명일 때는 버퍼 Polling 및 JSON 직렬화를 생략하여 서버 리소스를 극도로 최적화하고, 다중 클라이언트 관리에 `CopyOnWriteArrayList`를 채택하여 Thread-safe 보장 및 에러 커넥션 자동 정리(Self-healing).
 - **Persistence & History:** MySQL을 활용하여 실시간 관제 데이터의 시계열 로깅 및 영속성 확보.
 - **Live Dashboard:** Next.js와 TypeScript 기반으로 차량 타입 및 상태별 동적 마커 렌더링.
 

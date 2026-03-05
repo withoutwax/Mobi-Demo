@@ -18,13 +18,15 @@ graph LR
     end
 
     subgraph "Backend Engine (Spring Boot)"
-        E[Data Ingestion Service] --> F[(MySQL)]
-        E --> G[SSE Emitter Service]
+        E[VehicleDataBroadcaster] -->|@Scheduled 1s| F[VehicleDataBuffer]
+        F -->|poll| E
+        E -->|hasClients?| G[SseEmitterService]
+        E -->|Entity Mapping| H[(MySQL)]
     end
 
     subgraph "Real-time Dashboard (Consumer)"
-        G -->|text/event-stream| H[EventSource API]
-        H --> I[React State / Map UI]
+        G -->|text/event-stream| I[EventSource API]
+        I --> J[React State / Map UI]
     end
 ```
 
@@ -74,6 +76,23 @@ graph LR
 1. **명시적 종료:** 클라이언트 측에서 연결이 종료되거나(Timeout, Completion), 서버 측 에러가 발생한 경우 콜백(`onCompletion`, `onTimeout`, `onError`)에 의해 해당 클라이언트가 리스트에서 즉시 `.remove()` 됩니다.
 2. **브로드캐스팅 중 예외 허용:** 데이터를 `send`하는 도중 클라이언트 네트워크 문제로 `IOException`이 발생하더라도, 이를 즉시 `try-catch`로 포착합니다. 전체 서버 로직이나 타 클라이언트의 전송 흐름을 블로킹하지 않고, 에러가 발생한 단일 Emitter만 리스트에서 안전하게 제거하여 **자가 치유(Self-healing)** 메커니즘을 작동시킵니다.
 3. **더미 이벤트 전송:** 커넥션 직후 Nginx/Proxy의 503 Timeout 방지를 위해 연결 성공("INIT") 이벤트를 즉각 1회 발송합니다.
+
+---
+
+## 5. Consumer/Broadcaster Layer: VehicleDataBroadcaster ([Spec 1.3])
+
+인메모리 버퍼(`VehicleDataBuffer`)에서 데이터를 꺼내어(Consume) 실제 클라이언트 쪽으로 쏘아보내는(Broadcast) 스케줄러입니다.
+
+### 5.1. 실시간 스케줄링 및 큐 순회
+
+- `@Scheduled(fixedRate = 1000)` 어노테이션을 사용하여 1초 단위로 버퍼에서 데이터를 소비합니다.
+- 한 번 스케줄러가 깰 때마다 버퍼(`LinkedBlockingQueue`)가 비워질 때까지 반복해서 꺼내어(`poll`) 가져갑니다.
+
+### 5.2. 트래픽 최적화 (Connection-Aware Strategy)
+
+1. **접속자 0명 시의 최적화:** `SseEmitterService`에 연결된 클라이언트가 1명도 없다면, `buffer.poll()` 순회 및 `broadcast()` 호출을 아예 건너뜁니다(Early Return).
+2. **배경:** 접속자가 없는데 데이터를 꺼내거나 JSON으로 직렬화할 이유가 없기 때문입니다. 이를 통해 **서버 CPU 리소스와 메모리 할당을 획기적으로 절약**할 수 있습니다.
+3. **버퍼 관리 정책 (Drop-newest):** 접속자가 0명이면 데이터를 비우지 않기 때문에 버퍼엔 금세 최대 용량(1000)이 찹니다. 이 때 데이터를 쌓는 `VehicleDataProducer` 스케줄러 측에서 Capacity 한도를 초과해 발생하는 `IllegalStateException`을 조용히 catch하고 처리하기 때문에 가장 최신 생산된 데이터들이 자연스럽게 누락(Drop)됩니다. SSE 접속자가 존재할 때만 최신 데이터 스트리밍이 재개되므로 메모리 누수나 데드락 우려가 없습니다.
 
 ---
 
