@@ -14,9 +14,9 @@
   - **MySQL (Persistence):** 실시간 스트리밍뿐만 아니라 시계열(Time-series) 형태의 주행 로그 데이터 영구 저장 및 조회 기반 마련.
   - **Full-stack Type Safety:** 백엔드(Kotlin/Java)부터 프론트엔드(TypeScript)까지 이어지는 견고한 타입 시스템 구축.
 - **기술 스택:**
-  - **Backend:** Kotlin, Java, Spring Boot, Spring Data JPA, Spring Web (SseEmitter)
+  - **Backend:** Kotlin, Java, Spring Boot, Spring Data JPA, Spring Web (SseEmitter) (server 디렉토리)
   - **Database:** MySQL
-  - **Frontend:** Next.js, React, TypeScript, EventSource API
+  - **Frontend:** Next.js, React, TypeScript, EventSource API (client 디렉토리)
 
 ## 2. System Architecture (시스템 아키텍처)
 
