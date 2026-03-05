@@ -60,6 +60,23 @@ graph LR
 
 ---
 
+## 4. Real-time Streaming (SSE) Layer: SseEmitterService ([Spec 1.3])
+
+단방향 리얼타임 데이터 전송을 위한 딜리버리 시스템입니다. 연결된 다수의 클라이언트를 안전하게 관리하기 위한 전략이 적용되었습니다.
+
+### 클라이언트 커넥션 관리 (Thread-Safety)
+
+- **컬렉션 선택:** 브로드캐스팅(순회 탐색) 작업이 잦은 특성을 고려하여 `CopyOnWriteArrayList<SseEmitter>`를 사용해 다중 스레드 환경에서 데이터 정합성을 보장합니다.
+- **Fail-Safe Iteration:** 순회 중 목록이 변경되어도 `ConcurrentModificationException`이 발생하지 않습니다.
+
+### 연결 정리 및 에러 핸들링 (Cleanup & Self-healing)
+
+1. **명시적 종료:** 클라이언트 측에서 연결이 종료되거나(Timeout, Completion), 서버 측 에러가 발생한 경우 콜백(`onCompletion`, `onTimeout`, `onError`)에 의해 해당 클라이언트가 리스트에서 즉시 `.remove()` 됩니다.
+2. **브로드캐스팅 중 예외 허용:** 데이터를 `send`하는 도중 클라이언트 네트워크 문제로 `IOException`이 발생하더라도, 이를 즉시 `try-catch`로 포착합니다. 전체 서버 로직이나 타 클라이언트의 전송 흐름을 블로킹하지 않고, 에러가 발생한 단일 Emitter만 리스트에서 안전하게 제거하여 **자가 치유(Self-healing)** 메커니즘을 작동시킵니다.
+3. **더미 이벤트 전송:** 커넥션 직후 Nginx/Proxy의 503 Timeout 방지를 위해 연결 성공("INIT") 이벤트를 즉각 1회 발송합니다.
+
+---
+
 ## 2. Domain Modeling: Vehicle Polymorphism ([Spec 1.1])
 
 `sealed interface`를 활용한 EV/ICE 다형성 모델입니다. **컴파일 타임 타입 안전성**과 **생성 시점 유효성 검증(Fail-fast)**을 동시에 보장합니다.
