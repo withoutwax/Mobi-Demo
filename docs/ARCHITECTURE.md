@@ -9,10 +9,12 @@
 ```mermaid
 graph LR
     subgraph "Vehicle Simulation (Producer)"
-        A[VehicleDataGenerator] --> B{VehicleType}
-        B -->|REGULAR/FREIGHT EV| C[EvVehicle]
-        B -->|REGULAR/FREIGHT ICE| D[IceVehicle]
-        B -->|MICRO EV 고정| C
+        A[VehicleDataProducer] -->|@Scheduled 1s| B[VehicleDataGenerator]
+        B --> C{VehicleType}
+        C -->|REGULAR/FREIGHT EV| D[EvVehicle]
+        C -->|REGULAR/FREIGHT ICE| E[IceVehicle]
+        C -->|MICRO EV 고정| D
+        D & E -->|offerAll| F[VehicleDataBuffer]
     end
 
     subgraph "Backend Engine (Spring Boot)"
@@ -32,7 +34,7 @@ graph LR
 
 `@Component`로 등록된 `VehicleDataGenerator`는 `generate()` 호출당 **최소 5대**의 가상 주행 데이터를 생성합니다.
 
-### 생성 전략 (Fixed Composition)
+### 3.1. 생성 전략 (Fixed Composition)
 
 | VehicleType | Powertrain  | 대수 | 속도 범위  |
 | ----------- | ----------- | ---- | ---------- |
@@ -44,7 +46,13 @@ graph LR
 
 > **MICRO+ICE 방어**: MICRO 타입은 항상 `createEvVehicle()`을 호출하여 도메인 불변식(`IceVehicle.init` 예외)을 트리거하지 않도록 설계.
 
-### 좌표 생성 범위
+### 3.2. 실시간 스케줄링 및 버퍼 적재 (`VehicleDataProducer`)
+
+- `@Scheduled(fixedRate = 1000)` 어노테이션을 사용하여 **1초(1000ms)** 단위로 위 생성 전략에 따라 데이터를 생산합니다.
+- 생성된 데이터는 `VehicleDataBuffer`(thread-safe `LinkedBlockingQueue(1000)`)에 `offerAll`로 삽입됩니다.
+- **Fault-tolerance:** 인메모리 버퍼가 가득 차서(Capacity 1000 초과) `IllegalStateException`이 발생할 경우, 스케줄러 스레드가 죽는 것을 방지하기 위해 내부적으로 예외를 캐치(catch) 후 `Warning` 로그만 남기며 다음 1초 주기를 정상적으로 대기합니다.
+
+### 3.3. 좌표 생성 범위
 
 - **위도(latitude):** `37.4 ~ 37.7` (서울 시내)
 - **경도(longitude):** `126.8 ~ 127.2` (서울 시내)
