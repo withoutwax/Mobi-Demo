@@ -16,7 +16,7 @@
 - **기술 스택:**
   - **Backend:** Kotlin, Java, Spring Boot, Spring Data JPA, Spring Web (SseEmitter) (server 디렉토리)
   - **Database:** MySQL
-  - **Frontend:** Next.js, React, TypeScript, EventSource API (client 디렉토리)
+  - **Frontend:** Next.js, React, TypeScript, EventSource API, shadcn/ui (client 디렉토리)
   - **Infra / DevOps:** Docker, Docker Compose
 
 ## 2. System Architecture (시스템 아키텍처)
@@ -54,6 +54,7 @@
 
 ### Spec 1.5: Detailed Dashboard Visualization
 
+- **shadcn/ui 도입:** 대시보드의 상태 패널, 위젯, 목록 등 UI 요소들은 `shadcn/ui` 기반의 컴포넌트로 일관성 있게 구현한다.
 - **지도 UI:** 차량 타입(`REGULAR`, `FREIGHT`, `MICRO`)별 맞춤형 아이콘 렌더링.
 - **상태 패널:** 온도 표시 및 파워트레인에 따른 에너지 게이지 바(Battery vs Fuel) 동적 렌더링.
 
