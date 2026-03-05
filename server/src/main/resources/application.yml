@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    # Docker Compose 사용 시: url: jdbc:mysql://db:3306/${MYSQL_DATABASE}
+    # 로컬 개발 시: url: jdbc:mysql://localhost:3306/${MYSQL_DATABASE}
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${MYSQL_DATABASE:mobility_db}
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_PASSWORD:password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      # 개발 환경: update | 프로덕션 환경: validate
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+
+server:
+  port: 8080
+
+# SSE 연결 타임아웃 (밀리초) — 0 = 타임아웃 없음
+spring.mvc.async.request-timeout: 0

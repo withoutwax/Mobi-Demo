@@ -1,0 +1,2 @@
+# infrastructure 패키지
+# JPA Entity, Repository (Spring Data JPA), DB 어댑터 등이 위치합니다.

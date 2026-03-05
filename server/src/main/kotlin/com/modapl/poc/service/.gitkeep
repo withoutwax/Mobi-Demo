@@ -1,0 +1,2 @@
+# service 패키지
+# VehicleGeneratorService (@Scheduled), SseEmitterService, VehicleDataService 등이 위치합니다.

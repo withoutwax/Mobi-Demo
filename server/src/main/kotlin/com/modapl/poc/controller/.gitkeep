@@ -1,0 +1,2 @@
+# controller 패키지
+# SSE 스트리밍 엔드포인트 (SseController), 차량 로그 조회 API 등이 위치합니다.
