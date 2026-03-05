@@ -16,7 +16,7 @@
 - **기술 스택:**
   - **Backend:** Kotlin, Java, Spring Boot, Spring Data JPA, Spring Web (SseEmitter) (server 디렉토리)
   - **Database:** MySQL
-  - **Frontend:** Next.js, React, TypeScript, EventSource API, shadcn/ui (client 디렉토리)
+  - **Frontend:** Next.js, React, TypeScript, EventSource API, shadcn/ui, Jest, Playwright (client 디렉토리)
   - **Infra / DevOps:** Docker, Docker Compose
 
 ## 2. System Architecture (시스템 아키텍처)
