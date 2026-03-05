@@ -47,9 +47,18 @@
 
 ## 4. Core Specifications: Phase 2 (Frontend - Next.js & React & TS)
 
-### Spec 1.4: Real-time State Management
+### Spec 1.4: Data Fetching & State Management Strategy
 
-- `EventSource` API로 백엔드와 연결하고, 수신된 데이터를 React State(또는 Zustand/Redux 등)에 안전하게 업데이트한다.
+데이터 성격에 따라 데이터 패칭 및 상태 관리 스택을 명확히 분리하여 성능을 최적화한다.
+
+1. **실시간 스트리밍 데이터 (차량 위치, 속도 등)**
+   - **권장 스택:** Native `EventSource` API + `useState` (복잡도 증가 시 Zustand 고려)
+   - **이유:** 브라우저 내장 API인 EventSource를 통해 SSE 커넥션을 열어두고, 이벤트 수신 시 React 상태를 덮어씌워(Overwrite) 지도와 상태바를 리렌더링하는 방식이 가장 가볍고 직관적이다. (빈번한 업데이트이므로 캐싱 불필요)
+
+2. **정적/히스토리 데이터 (차량 상세 제원, 과거 주행 기록 등)**
+   - **권장 스택:** React Query (TanStack Query)
+   - **이유:** 특정 차량 클릭 시 상세 정보를 불러오는 REST API 등은 React Query의 캐싱(Caching) 및 상태 동기화 기능을 100% 활용하여 서버 부하를 줄이고 빠른 UI 응답성을 확보한다.
+
 - TypeScript의 유니온 타입(Union Types)과 타입 가드(Type Guards)를 활용해 백엔드에서 넘어온 EV/ICE 데이터를 런타임 에러 없이 분기 처리한다.
 
 ### Spec 1.5: Detailed Dashboard Visualization
