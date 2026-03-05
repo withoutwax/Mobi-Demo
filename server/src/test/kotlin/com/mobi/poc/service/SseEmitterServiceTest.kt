@@ -239,9 +239,14 @@ class SseEmitterServiceTest {
     @Test
     @DisplayName("20. 순회 중 클라이언트 삭제 시 CME 없이 완주")
     fun `deletion mid broadcast safe`() {
-        // Init with 100
         val e = mockk<SseEmitter>(relaxed = true)
         sseService.addEmitterForTest(e)
+        
+        // mock e.send to sleep long enough so the second thread can run subscribe concurrently
+        every { e.send(any<SseEmitter.SseEventBuilder>()) } answers {
+            Thread.sleep(50)
+            throw IOException() // this will trigger remove
+        }
         
         val executor = Executors.newFixedThreadPool(2)
         val latch = CountDownLatch(2)
@@ -251,12 +256,14 @@ class SseEmitterServiceTest {
             latch.countDown()
         }
         executor.submit { 
-            // trigger self healing to remove
-            every { e.send(any<SseEmitter.SseEventBuilder>()) } throws IOException()
+            Thread.sleep(10) // ensure broadcast starts first
+            sseService.subscribe() // concurrent add
             latch.countDown()
         }
         latch.await()
         executor.shutdown()
-        assertThat(sseService.getEmitterCount()).isEqualTo(0)
+        
+        // original dead emitter is removed, new one is added -> size == 1
+        assertThat(sseService.getEmitterCount()).isEqualTo(1)
     }
 }
