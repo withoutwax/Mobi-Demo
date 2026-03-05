@@ -31,6 +31,11 @@
 - **Language:** TypeScript
 - **UI/UX:** CSS Modules / Tailwind CSS, Map API (Google/Kakao)
 
+### DevOps
+
+- **Containerization:** Docker, Docker Compose
+- **Services:** MySQL, Spring Boot, Next.js 전체를 컨테이너로 오케스트레이션
+
 ### Engineering
 
 - **Methodology:** SDD (Spec Driven Development), TDD (Test Driven Development)
@@ -40,26 +45,27 @@
 
 ## System Architecture
 
-본 시스템은 데이터 유실 방지를 위한 In-memory Buffering과 효율적인 Event Streaming 아키텍처를 따릅니다.
+본 시스템은 Docker Compose로 전체 인프라를 오케스트레이션하며, In-memory Buffering과 Event Streaming 아키텍처를 따릅니다.
 
 ```mermaid
 graph LR
-    subgraph "Producer (SDV Simulator)"
-        A[Vehicle Generator] --> B{Powertrain Logic}
-        B -->|EV| C[Battery Status]
-        B -->|ICE| D[Fuel Status]
-    end
+    subgraph "Docker Compose"
+        subgraph "Producer (SDV Simulator)"
+            A[Vehicle Generator] --> B{Powertrain Logic}
+            B -->|EV| C[Battery Status]
+            B -->|ICE| D[Fuel Status]
+        end
 
-    subgraph "Backend (Spring Boot)"
-        E[Blocking Queue Buffer] --> F[(MySQL Storage)]
-        E --> G[SSE Emitter Service]
-    end
+        subgraph "Backend (Spring Boot)"
+            E[Blocking Queue Buffer] --> F[(MySQL Container)]
+            E --> G[SSE Emitter Service]
+        end
 
-    subgraph "Consumer (Next.js Dashboard)"
-        G -->|text/event-stream| H[EventSource API]
-        H --> I[Real-time Map UI]
+        subgraph "Consumer (Next.js Dashboard)"
+            G -->|text/event-stream| H[EventSource API]
+            H --> I[Real-time Map UI]
+        end
     end
-
 ```
 
 ---
@@ -80,23 +86,39 @@ graph LR
 
 ### Prerequisites
 
-- Java 17+ / Kotlin 1.9+
-- Node.js 18+
-- MySQL 8.0
+- **Docker Desktop** (Docker Engine 20.10+ & Docker Compose V2)
+- Java 17+ / Kotlin 1.9+ (로컬 개발 시)
+- Node.js 18+ (로컬 개발 시)
 
-### Backend
+### Docker로 전체 시스템 기동 (권장)
+
+```bash
+# .env.example을 복사하여 환경 변수 설정
+cp .env.example .env
+
+# 전체 시스템 기동 (빌드 포함)
+docker compose up --build
+
+# 백그라운드 실행
+docker compose up -d
+
+# 종료 및 볼륨 정리
+docker compose down -v
+```
+
+### 로컬 개발 (Docker 없이)
+
+#### Backend
 
 ```bash
 ./gradlew bootRun
-
 ```
 
-### Frontend
+#### Frontend
 
 ```bash
 npm install
 npm run dev
-
 ```
 
 ---

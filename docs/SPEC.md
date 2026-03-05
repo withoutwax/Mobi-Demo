@@ -1,8 +1,8 @@
 # 📄 Mobility Data Pipeline & Dashboard PoC - Design Document
 
-**Version:** 1.4 (Updated: Tech Stack Refinement - Kotlin, MySQL)
+**Version:** 1.5 (Updated: Docker Compose 기반 컨테이너 환경 추가)
 **Methodology:** SDD (Spec Driven Development) & TDD (Test Driven Development)
-**Tooling:** Antigravity IDE, JUnit5, KotlinTest(선택)
+**Tooling:** Antigravity IDE, JUnit5, KotlinTest(선택), Docker & Docker Compose
 
 ---
 
@@ -17,6 +17,7 @@
   - **Backend:** Kotlin, Java, Spring Boot, Spring Data JPA, Spring Web (SseEmitter) (server 디렉토리)
   - **Database:** MySQL
   - **Frontend:** Next.js, React, TypeScript, EventSource API (client 디렉토리)
+  - **Infra / DevOps:** Docker, Docker Compose
 
 ## 2. System Architecture (시스템 아키텍처)
 
@@ -24,6 +25,7 @@
 2. **[Persistence]** 생성된 데이터를 Spring Data JPA를 통해 MySQL `vehicle_logs` 테이블에 Insert.
 3. **[Event Streaming]** DB 저장과 동시에(혹은 트랜잭션 종료 후) ApplicationEventPublisher를 통해 SSE Emitter로 데이터 Push.
 4. **[Dashboard UI]** Next.js에서 실시간 데이터를 받아 지도 마커 갱신 및 상태바 렌더링.
+5. **[Container Orchestration]** 위 1~4의 모든 서비스를 Docker Compose로 오케스트레이션하여 `docker compose up` 한 명령어로 전체 시스템 기동.
 
 ## 3. Core Specifications: Phase 1 (Backend - Kotlin & Spring Boot & MySQL)
 
@@ -73,4 +75,60 @@ Kotlin `data class`로 직렬화될 JSON 규격이자 MySQL 테이블 컬럼의 
   "fuelLevel": null, // EV인 경우 null, DB 컬럼도 nullable
   "createdAt": "LocalDateTime (DB Insert 시간)"
 }
+```
+
+## 6. Container Specifications: Docker Compose (컨테이너 환경 명세)
+
+### Spec 6.1: Service Definitions (서비스 정의)
+
+프로젝트 루트의 `docker-compose.yml` 파일에 아래 세 가지 서비스를 정의한다.
+
+| Service  | Image / Build                | Port Mapping | 비고                                |
+| -------- | ---------------------------- | ------------ | ----------------------------------- |
+| `db`     | `mysql:8.0`                  | `3306:3306`  | 볼륨 마운트로 데이터 영속화         |
+| `server` | `./server` (Dockerfile 빌드) | `8080:8080`  | `db` 서비스 의존 (`depends_on`)     |
+| `client` | `./client` (Dockerfile 빌드) | `3000:3000`  | `server` 서비스 의존 (`depends_on`) |
+
+### Spec 6.2: MySQL Container (DB 컨테이너)
+
+- 공식 `mysql:8.0` 이미지를 사용한다.
+- 환경 변수(`MYSQL_ROOT_PASSWORD`, `MYSQL_DATABASE` 등)를 `.env` 파일 또는 `environment` 블록으로 관리한다.
+- `volumes`를 통해 데이터를 Named Volume(`db-data`)에 영속화하여 컨테이너 재시작 시 데이터 유실을 방지한다.
+- `healthcheck`를 설정하여 MySQL이 완전히 기동된 후 백엔드가 연결을 시도하도록 보장한다.
+
+### Spec 6.3: Backend Container (Spring Boot 컨테이너)
+
+- `server/Dockerfile`에 Multi-stage Build를 적용한다.
+  - **Stage 1 (Builder):** Gradle 빌드를 통해 실행 가능한 JAR 생성.
+  - **Stage 2 (Runtime):** 경량 JRE 이미지(`eclipse-temurin:17-jre-alpine` 등) 위에 JAR 배치.
+- `application.yml` 또는 환경 변수로 DB 접속 정보를 Docker 내부 네트워크 기준(`db:3306`)으로 설정한다.
+- `depends_on` + `healthcheck` 조건을 통해 MySQL 기동 완료 후 Spring Boot가 시작되도록 순서를 보장한다.
+
+### Spec 6.4: Frontend Container (Next.js 컨테이너)
+
+- `client/Dockerfile`에 Multi-stage Build를 적용한다.
+  - **Stage 1 (Builder):** `npm install && npm run build`로 프로덕션 번들 생성.
+  - **Stage 2 (Runtime):** `node:18-alpine` 이미지 위에서 `npm start`로 서비스 기동.
+- SSE 엔드포인트 URL을 환경 변수(`NEXT_PUBLIC_API_URL`)로 주입받아 Docker 네트워크 내 `server` 서비스에 연결한다.
+
+### Spec 6.5: Network & Environment (네트워크 및 환경 변수)
+
+- Docker Compose의 기본 브리지 네트워크를 활용하여 서비스 간 통신한다 (서비스명으로 DNS 해석).
+- 민감 정보(DB 비밀번호 등)는 `.env` 파일로 분리하고, `.gitignore`에 등록하여 소스 관리에서 제외한다.
+- `.env.example` 파일을 제공하여 다른 개발자가 환경을 쉽게 구성할 수 있도록 한다.
+
+### Spec 6.6: Development Workflow (개발 워크플로우)
+
+```bash
+# 전체 시스템 기동 (빌드 포함)
+docker compose up --build
+
+# 백그라운드 실행
+docker compose up -d
+
+# 로그 확인
+docker compose logs -f server
+
+# 전체 종료 및 볼륨 정리
+docker compose down -v
 ```
