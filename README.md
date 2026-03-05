@@ -8,7 +8,7 @@
 
 ## Key Features
 
-- **Multi-Type Mobility Simulation:** 일반 차량, 화물차, 마이크로 모빌리티(킥보드/자전거)의 각기 다른 주행 특성을 반영한 데이터 생성.
+- **Multi-Type Mobility Simulation:** `VehicleDataGenerator`가 호출당 REGULAR·FREIGHT·MICRO 3가지 타입을 조합하여 최소 5대의 가상 주행 데이터를 생성. 타입별 속도 범위(REGULAR 30~80, FREIGHT 40~60, MICRO 10~25 km/h)와 서울 좌표 범위를 보장.
 - **SDV Data Modeling:** Kotlin `sealed interface`로 `Vehicle` 도메인을 설계하여 `EvVehicle`(배터리)/`IceVehicle`(연료)의 파워트레인 다형성을 타입 안전하게 구현. `init { require(...) }`로 잘못된 도메인 조합(MICRO+ICE)을 생성 시점에 즉시 차단.
 - **Real-time Streaming (SSE):** HTTP 기반의 Server-Sent Events를 채택하여 서버 리소스를 최적화한 단방향 실시간 데이터 브로드캐스팅.
 - **Persistence & History:** MySQL을 활용하여 실시간 관제 데이터의 시계열 로깅 및 영속성 확보.

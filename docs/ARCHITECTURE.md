@@ -9,9 +9,10 @@
 ```mermaid
 graph LR
     subgraph "Vehicle Simulation (Producer)"
-        A[Vehicle Generator] --> B{Strategy Pattern}
-        B -->|EV Logic| C[EvVehicle]
-        B -->|ICE Logic| D[IceVehicle]
+        A[VehicleDataGenerator] --> B{VehicleType}
+        B -->|REGULAR/FREIGHT EV| C[EvVehicle]
+        B -->|REGULAR/FREIGHT ICE| D[IceVehicle]
+        B -->|MICRO EV 고정| C
     end
 
     subgraph "Backend Engine (Spring Boot)"
@@ -24,6 +25,30 @@ graph LR
         H --> I[React State / Map UI]
     end
 ```
+
+---
+
+## 3. Producer Layer: VehicleDataGenerator ([Spec 1.1])
+
+`@Component`로 등록된 `VehicleDataGenerator`는 `generate()` 호출당 **최소 5대**의 가상 주행 데이터를 생성합니다.
+
+### 생성 전략 (Fixed Composition)
+
+| VehicleType | Powertrain  | 대수 | 속도 범위  |
+| ----------- | ----------- | ---- | ---------- |
+| REGULAR     | EV          | 1대  | 30~80 km/h |
+| REGULAR     | ICE         | 1대  | 30~80 km/h |
+| FREIGHT     | EV          | 1대  | 40~60 km/h |
+| FREIGHT     | ICE         | 1대  | 40~60 km/h |
+| MICRO       | **EV 고정** | 1대  | 10~25 km/h |
+
+> **MICRO+ICE 방어**: MICRO 타입은 항상 `createEvVehicle()`을 호출하여 도메인 불변식(`IceVehicle.init` 예외)을 트리거하지 않도록 설계.
+
+### 좌표 생성 범위
+
+- **위도(latitude):** `37.4 ~ 37.7` (서울 시내)
+- **경도(longitude):** `126.8 ~ 127.2` (서울 시내)
+- `kotlin.random.Random.nextDouble(min, max)`으로 매 호출마다 다른 좌표 생성.
 
 ---
 

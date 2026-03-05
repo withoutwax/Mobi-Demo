@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import com.modapl.poc.service.VehicleDataGenerator
 
 /**
  * [Spec 1.1] VehicleDataGenerator 단위 테스트 (TDD - Red Phase)
