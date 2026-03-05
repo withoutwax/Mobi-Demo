@@ -1,4 +1,4 @@
-package com.modapl.poc.domain
+package com.mobi.poc.domain
 
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy

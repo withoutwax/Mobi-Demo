@@ -6,7 +6,7 @@ plugins {
     kotlin("plugin.jpa") version "1.9.25"
 }
 
-group = "com.modapl.poc"
+group = "com.mobi.poc"
 version = "0.0.1-SNAPSHOT"
 
 kotlin {

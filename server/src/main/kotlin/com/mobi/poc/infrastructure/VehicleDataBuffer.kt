@@ -1,6 +1,6 @@
-package com.modapl.poc.infrastructure
+package com.mobi.poc.infrastructure
 
-import com.modapl.poc.domain.Vehicle
+import com.mobi.poc.domain.Vehicle
 import org.springframework.stereotype.Component
 import java.util.concurrent.LinkedBlockingQueue
 

@@ -1,6 +1,6 @@
-package com.modapl.poc.service
+package com.mobi.poc.service
 
-import com.modapl.poc.domain.*
+import com.mobi.poc.domain.*
 import org.springframework.stereotype.Component
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.random.Random

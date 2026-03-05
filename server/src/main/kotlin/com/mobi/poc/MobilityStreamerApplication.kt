@@ -1,4 +1,4 @@
-package com.modapl.poc
+package com.mobi.poc
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication

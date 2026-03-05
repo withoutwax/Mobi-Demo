@@ -1,9 +1,9 @@
-package com.modapl.poc.service
+package com.mobi.poc.service
 
-import com.modapl.poc.domain.EvVehicle
-import com.modapl.poc.domain.Vehicle
-import com.modapl.poc.domain.VehicleType
-import com.modapl.poc.infrastructure.VehicleDataBuffer
+import com.mobi.poc.domain.EvVehicle
+import com.mobi.poc.domain.Vehicle
+import com.mobi.poc.domain.VehicleType
+import com.mobi.poc.infrastructure.VehicleDataBuffer
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode
 import org.junit.jupiter.api.BeforeEach

@@ -1,4 +1,4 @@
-package com.modapl.poc.controller
+package com.mobi.poc.controller
 
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping

@@ -1,4 +1,4 @@
-package com.modapl.poc.domain
+package com.mobi.poc.domain
 
 // ============================================================
 // [Spec 1.1] Vehicle 도메인 모델
