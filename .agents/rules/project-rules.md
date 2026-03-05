@@ -11,6 +11,7 @@ trigger: always_on
 - **README Sync (필수):** 모든 주요 기능 구현이나 아키텍처 변경(예: 새로운 기술 스택 도입, 데이터 흐름 변경, 파워트레인 다형성 구조 추가 등)이 완료되면, **반드시 `README.md`를 최신 상태로 업데이트**해야 한다.
 - **Visual Architecture:** `README.md`에는 면접관이 한눈에 파악할 수 있도록 전체 시스템 아키텍처(Backend-Frontend-DB-SSE)를 텍스트 기반 다이어그램(Mermaid 등)이나 명확한 개요로 유지하라.
 - **Spec vs README:** `docs/SPEC.md`는 개발을 위한 상세 명세서이고, `README.md`는 면접관을 위한 '하이레벨 아키텍처 및 프로젝트 가이드'임을 인지하고 각각의 톤앤매너에 맞게 관리하라.
+- **Update:** `docs/`안에 있는 모든 마크다운(\*.md)와 `README.md`에 특정 기업 이름이 들어가지 않도록 하라.
 
 ## 2. SDD & TDD Workflow (개발 방법론)
 

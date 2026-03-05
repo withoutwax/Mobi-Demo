@@ -1,6 +1,6 @@
 # 🏛️ System Architecture Design: Mobility Data Pipeline
 
-이 문서는 모다플 PoC 프로젝트의 기술적 의사결정, 데이터 흐름, 그리고 객체 지향 설계 원칙을 상세히 다룹니다.
+이 문서는 PoC 프로젝트의 기술적 의사결정, 데이터 흐름, 그리고 객체 지향 설계 원칙을 상세히 다룹니다.
 
 ## 1. High-Level System Design
 
