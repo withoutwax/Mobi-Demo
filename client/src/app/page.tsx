@@ -1,65 +1,110 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useVehicleStream } from "@/hooks/useVehicleStream";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Vehicle } from "@/types/vehicle";
+
+export default function DashboardPage() {
+  const { vehicles, isConnected, error } = useVehicleStream();
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <div className="container mx-auto p-4 max-w-5xl h-screen flex flex-col">
+      <header className="mb-6 flex items-center justify-between">
+        <h1 className="text-3xl font-bold tracking-tight">
+          실시간 차량 관제 대시보드
+        </h1>
+        <div className="flex items-center gap-2">
+          {error ? (
+            <Badge variant="destructive" className="text-sm py-1 px-3">
+              🔴 {error}
+            </Badge>
+          ) : isConnected ? (
+            <Badge
+              variant="default"
+              className="bg-green-600 hover:bg-green-700 text-sm py-1 px-3"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              🟢 실시간 연결됨
+            </Badge>
+          ) : (
+            <Badge variant="secondary" className="text-sm py-1 px-3">
+              🟡 연결 중...
+            </Badge>
+          )}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </header>
+
+      <ScrollArea className="flex-1 rounded-md border p-4 bg-slate-50/50">
+        {vehicles.length === 0 ? (
+          <div className="flex items-center justify-center h-40 text-slate-500">
+            수신 대기 중이거나 활성화된 차량 데이터가 없습니다.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {vehicles.map((vehicle) => (
+              <VehicleCard key={vehicle.vehicleId} vehicle={vehicle} />
+            ))}
+          </div>
+        )}
+      </ScrollArea>
     </div>
+  );
+}
+
+function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
+  // 차량의 타입 파워트레인을 기반으로 타입 가드를 적용하여(배터리 vs 연료) 배지 동적으로 렌더링
+  return (
+    <Card className="vehicle-item transition-all hover:shadow-md border-slate-200">
+      <CardHeader className="pb-2 flex flex-row items-center justify-between">
+        <CardTitle className="text-lg font-semibold">
+          {vehicle.vehicleId}
+        </CardTitle>
+        <Badge variant="outline" className="text-xs uppercase bg-slate-100">
+          {vehicle.vehicleType}
+        </Badge>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col gap-3 mt-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-slate-500 font-medium">
+              현재 속도
+            </span>
+            <span className="text-2xl font-bold tabular-nums">
+              {vehicle.speed.toFixed(1)}{" "}
+              <span className="text-sm text-slate-500 font-normal">km/h</span>
+            </span>
+          </div>
+
+          <div className="border-t pt-3 flex items-center justify-between">
+            {vehicle.powertrain === "EV" ? (
+              <>
+                <span className="text-sm text-slate-500 font-medium tracking-tight">
+                  배터리 잔량
+                </span>
+                <Badge
+                  variant="secondary"
+                  className="bg-blue-100 text-blue-800 hover:bg-blue-200"
+                >
+                  ⚡ {vehicle.batteryLevel.toFixed(1)} %
+                </Badge>
+              </>
+            ) : (
+              <>
+                <span className="text-sm text-slate-500 font-medium tracking-tight">
+                  연료 잔량
+                </span>
+                <Badge
+                  variant="secondary"
+                  className="bg-orange-100 text-orange-800 hover:bg-orange-200"
+                >
+                  ⛽ {vehicle.fuelLevel.toFixed(1)} %
+                </Badge>
+              </>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
