@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { Vehicle } from "../types/vehicle";
 
-export function useVehicleStream(url: string = "/api/vehicles/stream") {
+export function useVehicleStream(
+  url: string = process.env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:8080/api/vehicles/stream",
+) {
   // 차량 데이터 리스트 상태 관리
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [isConnected, setIsConnected] = useState<boolean>(false);

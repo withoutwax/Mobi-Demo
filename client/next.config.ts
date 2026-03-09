@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Using direct CORS connection for SSE instead of Next.js rewrites to prevent connection dropping
 };
 
 export default nextConfig;

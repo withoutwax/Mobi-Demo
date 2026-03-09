@@ -16,8 +16,6 @@ import kotlin.random.Random
 @Component
 class VehicleDataGenerator {
 
-    private val counter = AtomicInteger(0)
-
     // 서울 시내 유효 좌표 범위
     private val seoulLatRange = 37.4..37.7
     private val seoulLngRange = 126.8..127.2
@@ -30,35 +28,36 @@ class VehicleDataGenerator {
     // 온도 범위 (°C)
     private val temperatureRange  = -10.0..40.0
 
-    /**
-     * 최소 5대의 가상 주행 데이터를 생성하여 반환한다.
-     *
-     * 구성:
-     * - REGULAR 2대 (EV 1대 + ICE 1대)
-     * - FREIGHT 2대 (EV 1대 + ICE 1대)
-     * - MICRO   1대 (EV 고정)
-     */
-    fun generate(): List<Vehicle> = buildList {
+    // 고정된 차량 5대 풀 유지
+    private val fixedVehicles: List<Vehicle> = listOf(
         // REGULAR: EV + ICE 각 1대 보장
-        add(createEvVehicle(VehicleType.REGULAR))
-        add(createIceVehicle(VehicleType.REGULAR))
-
+        initEvVehicle("REGULAR-EV-001", VehicleType.REGULAR),
+        initIceVehicle("REGULAR-ICE-002", VehicleType.REGULAR),
         // FREIGHT: EV + ICE 각 1대 보장
-        add(createEvVehicle(VehicleType.FREIGHT))
-        add(createIceVehicle(VehicleType.FREIGHT))
-
+        initEvVehicle("FREIGHT-EV-003", VehicleType.FREIGHT),
+        initIceVehicle("FREIGHT-ICE-004", VehicleType.FREIGHT),
         // MICRO: 항상 EvVehicle (도메인 불변식 - ICE 금지)
-        add(createEvVehicle(VehicleType.MICRO))
+        initEvVehicle("MICRO-EV-005", VehicleType.MICRO)
+    )
+
+    /**
+     * 고정된 5대의 가상 주행 데이터를 업데이트하여 반환한다.
+     * ID는 고정 유지되며 위치, 속도, 배터리/연료 등의 상태만 변경된다.
+     */
+    fun generate(): List<Vehicle> = fixedVehicles.map { vehicle ->
+        when (vehicle) {
+            is EvVehicle -> updateEvVehicle(vehicle)
+            is IceVehicle -> updateIceVehicle(vehicle)
+        }
     }
 
     // ------------------------------------------------------------------
     // Private Factory Methods
     // ------------------------------------------------------------------
 
-    private fun createEvVehicle(type: VehicleType): EvVehicle {
-        val seq = counter.incrementAndGet()
+    private fun initEvVehicle(id: String, type: VehicleType): EvVehicle {
         return EvVehicle(
-            vehicleId    = "${type.name}-EV-%03d".format(seq),
+            vehicleId    = id,
             vehicleType  = type,
             latitude     = randomInRange(seoulLatRange),
             longitude    = randomInRange(seoulLngRange),
@@ -68,16 +67,37 @@ class VehicleDataGenerator {
         )
     }
 
-    private fun createIceVehicle(type: VehicleType): IceVehicle {
-        val seq = counter.incrementAndGet()
+    private fun initIceVehicle(id: String, type: VehicleType): IceVehicle {
         return IceVehicle(
-            vehicleId   = "${type.name}-ICE-%03d".format(seq),
+            vehicleId   = id,
             vehicleType = type,
             latitude    = randomInRange(seoulLatRange),
             longitude   = randomInRange(seoulLngRange),
             speed       = randomInRange(speedRangeFor(type)),
             temperature = randomInRange(temperatureRange),
             fuelLevel   = randomInRange(10.0..100.0),
+        )
+    }
+
+    private fun updateEvVehicle(vehicle: EvVehicle): EvVehicle {
+        return vehicle.copy(
+            // 실제 주행처럼 위치를 미세하게 변동시킬 수도 있지만, 여기서는 무작위 갱신으로 둠
+            latitude     = randomInRange(seoulLatRange),
+            longitude    = randomInRange(seoulLngRange),
+            speed        = randomInRange(speedRangeFor(vehicle.vehicleType)),
+            temperature  = randomInRange(temperatureRange),
+            // 배터리는 조금씩 닳게 하거나 랜덤 변동
+            batteryLevel = randomInRange(10.0..100.0)
+        )
+    }
+
+    private fun updateIceVehicle(vehicle: IceVehicle): IceVehicle {
+        return vehicle.copy(
+            latitude    = randomInRange(seoulLatRange),
+            longitude   = randomInRange(seoulLngRange),
+            speed       = randomInRange(speedRangeFor(vehicle.vehicleType)),
+            temperature = randomInRange(temperatureRange),
+            fuelLevel   = randomInRange(10.0..100.0)
         )
     }
 
