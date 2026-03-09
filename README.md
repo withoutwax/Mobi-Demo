@@ -128,3 +128,7 @@ npm run dev
 - [docs/SPEC.md](https://www.google.com/search?q=./docs/SPEC.md): 비즈니스 요구사항 및 기능 상세 명세
 - [docs/ARCHITECTURE.md](https://www.google.com/search?q=./docs/ARCHITECTURE.md): 기술적 의사결정 이유 및 상세 설계도
 - [docs/SKILL.md](https://www.google.com/search?q=./docs/SKILL.md): 프로젝트에 적용된 핵심 기술셋 정리
+
+## Time
+
+이 프로젝트의 소요시간은 총: 3시간 25분입니다.
