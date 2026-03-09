@@ -41,7 +41,11 @@ export function useVehicleStream(
         try {
           const parsedData = JSON.parse(event.data) as Vehicle[];
           if (isMounted) {
-            setVehicles(parsedData);
+            // Deduplicate by vehicleId in case the buffer sends multiple frames at once
+            const uniqueVehicles = Array.from(
+              new Map(parsedData.map((v) => [v.vehicleId, v])).values(),
+            );
+            setVehicles(uniqueVehicles);
             setIsConnected(true);
             setError(null);
           }
@@ -55,7 +59,11 @@ export function useVehicleStream(
         try {
           const parsedData = JSON.parse(event.data) as Vehicle[];
           if (isMounted) {
-            setVehicles(parsedData);
+            // Deduplicate by vehicleId in case the buffer sends multiple frames at once
+            const uniqueVehicles = Array.from(
+              new Map(parsedData.map((v) => [v.vehicleId, v])).values(),
+            );
+            setVehicles(uniqueVehicles);
             setIsConnected(true);
             setError(null);
           }
