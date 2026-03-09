@@ -1,0 +1,38 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: mobi-demo-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-mobility_db}
+      MYSQL_USER: ${MYSQL_USER:-mobi_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-mobi_password}
+    ports:
+      - "3307:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mobi-demo-server
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-mobility_db}
+      - MYSQL_USER=${MYSQL_USER:-mobi_user}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-mobi_password}
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db-data:
